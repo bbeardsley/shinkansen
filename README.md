@@ -409,15 +409,3 @@ When processing multiple files, specify an output directory:
 ```bash
 shinkansen file1.txt file2.txt -o output_dir/
 ```
-
-### Cannot Use --stdin with Input Files
-
-The `--stdin` flag is mutually exclusive with file inputs:
-
-```bash
-# Wrong
-shinkansen template.txt --stdin
-
-# Correct
-echo "content" | shinkansen --stdin -D var="value"
-```
