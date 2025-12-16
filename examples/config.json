@@ -1,0 +1,15 @@
+{
+  "project_name": "Shinkansen Demo",
+  "version": "1.0.0",
+  "environment": "production",
+  "debug": false,
+  "port": 3000,
+  "host": "0.0.0.0",
+  "features": [
+    "Template processing",
+    "Multi-format config",
+    "Variable precedence",
+    "Directory recursion"
+  ],
+  "author": "Shinkansen Team"
+}

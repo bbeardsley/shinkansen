@@ -1,0 +1,14 @@
+server {
+    listen {{ port | default(value="80") }};
+    server_name {{ domain | default(value="example.com") }};
+    
+    {% if ssl_enabled %}
+    ssl_certificate {{ ssl_cert }};
+    ssl_certificate_key {{ ssl_key }};
+    {% endif %}
+    
+    location / {
+        proxy_pass http://{{ BACKEND_HOST }}:{{ BACKEND_PORT }};
+        proxy_set_header Host $host;
+    }
+}

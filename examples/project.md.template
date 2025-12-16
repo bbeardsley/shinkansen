@@ -1,0 +1,22 @@
+# {{ project_name }}
+
+Version: {{ version }}
+Environment: {{ environment | upper }}
+
+## Configuration
+
+- Debug Mode: {{ debug | default(value="false") }}
+- Port: {{ port | default(value="8080") }}
+- Host: {{ host | default(value="localhost") }}
+
+{% if features %}
+## Features
+
+{% for feature in features %}
+- {{ feature }}
+{% endfor %}
+{% endif %}
+
+## Author
+
+Created by {{ author | default(value="Unknown") }}
