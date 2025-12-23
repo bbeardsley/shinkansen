@@ -111,7 +111,7 @@ pub fn validate_args(cli: &Cli) -> Result<()> {
 }
 
 /// Process all inputs
-pub fn process_inputs(cli: &Cli, variables: &HashMap<String, tera::Value>) -> Result<()> {
+pub fn process_inputs(cli: &Cli, variables: &HashMap<String, minijinja::Value>) -> Result<()> {
     // Check if we're reading from stdin (either explicitly with "-" or implicitly with no inputs)
     let using_stdin = cli.inputs.is_empty() || (cli.inputs.len() == 1 && cli.inputs[0] == "-");
 
@@ -124,7 +124,7 @@ pub fn process_inputs(cli: &Cli, variables: &HashMap<String, tera::Value>) -> Re
     Ok(())
 }
 
-fn process_stdin(cli: &Cli, variables: &HashMap<String, tera::Value>) -> Result<()> {
+fn process_stdin(cli: &Cli, variables: &HashMap<String, minijinja::Value>) -> Result<()> {
     use std::io::{self, Read};
 
     let mut content = String::new();
@@ -145,7 +145,7 @@ fn process_stdin(cli: &Cli, variables: &HashMap<String, tera::Value>) -> Result<
     Ok(())
 }
 
-fn process_files(cli: &Cli, variables: &HashMap<String, tera::Value>) -> Result<()> {
+fn process_files(cli: &Cli, variables: &HashMap<String, minijinja::Value>) -> Result<()> {
     let input_files = collect_input_files(cli)?;
 
     if input_files.is_empty() {

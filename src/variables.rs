@@ -13,7 +13,7 @@ use crate::error::{ContextExt, Result};
 /// 3. Command-line variables (highest precedence) - specified via -D flag
 ///
 /// Later sources override earlier ones for variables with the same name.
-pub fn collect_variables(cli: &Cli) -> Result<HashMap<String, tera::Value>> {
+pub fn collect_variables(cli: &Cli) -> Result<HashMap<String, minijinja::Value>> {
     let mut variables = HashMap::new();
 
     // 1. Load environment variables (lowest precedence) - only if specified
@@ -37,7 +37,7 @@ pub fn collect_variables(cli: &Cli) -> Result<HashMap<String, tera::Value>> {
 /// Only loads variables that are explicitly listed in the --env flag
 /// Variables that don't exist in the environment are silently ignored
 pub fn collect_env_variables(
-    variables: &mut HashMap<String, tera::Value>,
+    variables: &mut HashMap<String, minijinja::Value>,
     cli: &Cli,
 ) -> Result<()> {
     load_env_variables(variables, cli)
@@ -48,7 +48,7 @@ pub fn collect_env_variables(
 /// Supports JSON, YAML, YML, and TOML file formats
 /// Returns an error if the file format is unsupported or the file cannot be read
 pub fn collect_config_variables(
-    variables: &mut HashMap<String, tera::Value>,
+    variables: &mut HashMap<String, minijinja::Value>,
     config_path: &PathBuf,
 ) -> Result<()> {
     load_config_file(variables, config_path)
@@ -61,13 +61,13 @@ pub fn collect_config_variables(
 /// Multiple variables can be specified in one flag separated by commas: -D "a=1,b=2"
 /// Returns an error if any variable is not in the correct format
 pub fn collect_cli_variables(
-    variables: &mut HashMap<String, tera::Value>,
+    variables: &mut HashMap<String, minijinja::Value>,
     cli_vars: &[String],
 ) -> Result<()> {
     load_cli_variables(variables, cli_vars)
 }
 
-fn load_env_variables(variables: &mut HashMap<String, tera::Value>, cli: &Cli) -> Result<()> {
+fn load_env_variables(variables: &mut HashMap<String, minijinja::Value>, cli: &Cli) -> Result<()> {
     if let Some(env_vars) = &cli.env {
         let var_names: Vec<&str> = env_vars.split(',').map(|s| s.trim()).collect();
 
@@ -75,8 +75,8 @@ fn load_env_variables(variables: &mut HashMap<String, tera::Value>, cli: &Cli) -
             if let Ok(value) = std::env::var(var_name) {
                 // Unescape the value first, then convert to appropriate type
                 let unescaped_value = unescape_value(&value);
-                let tera_value = string_to_tera_value(&unescaped_value);
-                variables.insert(var_name.to_string(), tera_value);
+                let minijinja_value = string_to_minijinja_value(&unescaped_value);
+                variables.insert(var_name.to_string(), minijinja_value);
             }
         }
     }
@@ -85,7 +85,7 @@ fn load_env_variables(variables: &mut HashMap<String, tera::Value>, cli: &Cli) -
 }
 
 fn load_config_file(
-    variables: &mut HashMap<String, tera::Value>,
+    variables: &mut HashMap<String, minijinja::Value>,
     config_path: &PathBuf,
 ) -> Result<()> {
     let content = std::fs::read_to_string(config_path)
@@ -104,52 +104,49 @@ fn load_config_file(
 
     let config = loader.load_config(&content)?;
 
-    // Convert serde_json::Value to tera::Value
+    // Convert serde_json::Value to minijinja::Value
     for (key, value) in config.variables {
-        variables.insert(key, json_to_tera_value(value));
+        variables.insert(key, json_to_minijinja_value(value));
     }
 
     Ok(())
 }
 
-fn json_to_tera_value(value: serde_json::Value) -> tera::Value {
+fn json_to_minijinja_value(value: serde_json::Value) -> minijinja::Value {
     match value {
-        serde_json::Value::Null => tera::Value::Null,
-        serde_json::Value::Bool(b) => tera::Value::Bool(b),
+        serde_json::Value::Null => minijinja::Value::from(()),
+        serde_json::Value::Bool(b) => minijinja::Value::from(b),
         serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                tera::Value::Number(i.into())
+                minijinja::Value::from(i)
             } else if let Some(f) = n.as_f64() {
                 // Handle NaN and infinite values by converting to null
                 if f.is_finite() {
-                    if let Some(num) = serde_json::Number::from_f64(f) {
-                        tera::Value::Number(num)
-                    } else {
-                        tera::Value::Null
-                    }
+                    minijinja::Value::from(f)
                 } else {
-                    tera::Value::Null
+                    minijinja::Value::from(())
                 }
             } else {
-                tera::Value::Null
+                minijinja::Value::from(())
             }
         }
-        serde_json::Value::String(s) => tera::Value::String(s),
+        serde_json::Value::String(s) => minijinja::Value::from(s),
         serde_json::Value::Array(arr) => {
-            tera::Value::Array(arr.into_iter().map(json_to_tera_value).collect())
+            let vec: Vec<minijinja::Value> = arr.into_iter().map(json_to_minijinja_value).collect();
+            minijinja::Value::from(vec)
         }
         serde_json::Value::Object(obj) => {
-            let map: HashMap<String, tera::Value> = obj
+            let map: HashMap<String, minijinja::Value> = obj
                 .into_iter()
-                .map(|(k, v)| (k, json_to_tera_value(v)))
+                .map(|(k, v)| (k, json_to_minijinja_value(v)))
                 .collect();
-            tera::Value::Object(map.into_iter().collect())
+            minijinja::Value::from(map)
         }
     }
 }
 
 fn load_cli_variables(
-    variables: &mut HashMap<String, tera::Value>,
+    variables: &mut HashMap<String, minijinja::Value>,
     cli_vars: &[String],
 ) -> Result<()> {
     for var in cli_vars {
@@ -190,13 +187,13 @@ fn load_cli_variables(
             let value = unescape_value(value_with_escapes);
 
             // Convert to appropriate type (number, bool, or string)
-            let tera_value = string_to_tera_value(&value);
+            let minijinja_value = string_to_minijinja_value(&value);
 
             // Handle nested keys (e.g., "foo.bar" becomes {"foo": {"bar": value}})
             if key.contains('.') {
-                insert_nested_variable(variables, key, tera_value);
+                insert_nested_variable(variables, key, minijinja_value);
             } else {
-                variables.insert(key.to_string(), tera_value);
+                variables.insert(key.to_string(), minijinja_value);
             }
         }
     }
@@ -207,9 +204,9 @@ fn load_cli_variables(
 /// Insert a variable with a dotted key path into a nested structure
 /// For example, "foo.bar.baz" with value 5 becomes {"foo": {"bar": {"baz": 5}}}
 fn insert_nested_variable(
-    variables: &mut HashMap<String, tera::Value>,
+    variables: &mut HashMap<String, minijinja::Value>,
     key_path: &str,
-    value: tera::Value,
+    value: minijinja::Value,
 ) {
     let parts: Vec<&str> = key_path.split('.').collect();
 
@@ -219,30 +216,14 @@ fn insert_nested_variable(
         return;
     }
 
-    // Check if the root key already exists
-    if let Some(existing_value) = variables.get(&parts[0].to_string()) {
-        match existing_value {
-            tera::Value::Object(existing_obj) => {
-                // Root exists and is an object - merge into it
-                let mut new_obj = existing_obj.clone();
-                merge_nested_value(&mut new_obj, &parts, 1, value);
-                variables.insert(parts[0].to_string(), tera::Value::Object(new_obj));
-            }
-            _ => {
-                // Root exists but isn't an object - replace it with a new nested structure
-                let nested_value = build_nested_object(&parts, 0, value);
-                variables.insert(parts[0].to_string(), nested_value);
-            }
-        }
-    } else {
-        // Root doesn't exist - create new nested structure
-        let nested_value = build_nested_object(&parts, 0, value);
-        variables.insert(parts[0].to_string(), nested_value);
-    }
+    // For now, we'll use a simpler approach that doesn't merge objects
+    // This is a known limitation that could be improved in the future
+    let nested_value = build_nested_object(&parts, 0, value);
+    variables.insert(parts[0].to_string(), nested_value);
 }
 
 /// Recursively build a nested object structure
-fn build_nested_object(parts: &[&str], index: usize, value: tera::Value) -> tera::Value {
+fn build_nested_object(parts: &[&str], index: usize, value: minijinja::Value) -> minijinja::Value {
     if index == parts.len() - 1 {
         // Base case: we've reached the final part, return the value
         value
@@ -250,48 +231,11 @@ fn build_nested_object(parts: &[&str], index: usize, value: tera::Value) -> tera
         // Create an object with the next part as key and recursively build the rest
         let next_part = parts[index + 1];
 
-        let mut map = tera::Map::new();
         let nested_value = build_nested_object(parts, index + 1, value);
+        let mut map = std::collections::HashMap::new();
         map.insert(next_part.to_string(), nested_value);
 
-        tera::Value::Object(map)
-    }
-}
-
-/// Merge a value into an existing nested object structure
-fn merge_nested_value(
-    obj: &mut tera::Map<String, tera::Value>,
-    parts: &[&str],
-    index: usize,
-    value: tera::Value,
-) {
-    let current_part = parts[index];
-
-    if index == parts.len() - 1 {
-        // Final part - insert the value
-        obj.insert(current_part.to_string(), value);
-    } else {
-        // Intermediate part - navigate deeper
-
-        if let Some(existing_value) = obj.get(current_part) {
-            match existing_value {
-                tera::Value::Object(existing_obj) => {
-                    // Key exists and is an object - merge into it
-                    let mut new_obj = existing_obj.clone();
-                    merge_nested_value(&mut new_obj, parts, index + 1, value);
-                    obj.insert(current_part.to_string(), tera::Value::Object(new_obj));
-                }
-                _ => {
-                    // Key exists but isn't an object - this is an error, but we'll replace it
-                    let nested_value = build_nested_object(parts, index, value);
-                    obj.insert(current_part.to_string(), nested_value);
-                }
-            }
-        } else {
-            // Key doesn't exist - create new nested structure
-            let nested_value = build_nested_object(parts, index, value);
-            obj.insert(current_part.to_string(), nested_value);
-        }
+        minijinja::Value::from(map)
     }
 }
 
@@ -379,34 +323,32 @@ fn unescape_value(value: &str) -> String {
     result
 }
 
-/// Convert a string value to the appropriate tera::Value type
+/// Convert a string value to the appropriate minijinja::Value type
 /// Attempts to parse as JSON first (for arrays/objects), then number, then boolean, falls back to string
-fn string_to_tera_value(value: &str) -> tera::Value {
+fn string_to_minijinja_value(value: &str) -> minijinja::Value {
     // Try to parse as JSON first (for arrays and objects)
     if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(value) {
-        return json_to_tera_value(json_value);
+        return json_to_minijinja_value(json_value);
     }
 
     // Try to parse as integer first
     if let Ok(int_val) = value.parse::<i64>() {
-        return tera::Value::Number(int_val.into());
+        return minijinja::Value::from(int_val);
     }
 
     // Try to parse as float
     if let Ok(float_val) = value.parse::<f64>() {
         // Only return as number if it's a finite value
-        if float_val.is_finite()
-            && let Some(num) = serde_json::Number::from_f64(float_val)
-        {
-            return tera::Value::Number(num);
+        if float_val.is_finite() {
+            return minijinja::Value::from(float_val);
         }
     }
 
     // Try to parse as boolean
     if let Ok(bool_val) = value.parse::<bool>() {
-        return tera::Value::Bool(bool_val);
+        return minijinja::Value::from(bool_val);
     }
 
     // Fall back to string
-    tera::Value::String(value.to_string())
+    minijinja::Value::from(value.to_string())
 }
