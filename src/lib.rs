@@ -1,4 +1,4 @@
-//! Shinkansen library - CLI file preprocessor using Tera templates
+//! Shinkansen library - CLI file preprocessor using MiniJinja templates
 
 pub mod cli;
 pub mod config;

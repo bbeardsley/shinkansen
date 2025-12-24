@@ -1,7 +1,7 @@
 # Shinkansen - CLI File Preprocessor
 
 A fast, cross-platform command-line file preprocessor built with Rust that uses
-[Tera](https://github.com/Keats/tera) templates to transform files with dynamic
+[MiniJinja](https://github.com/mitsuhiko/minijinja) templates to transform files with dynamic
 variables.
 
 ## Features
@@ -16,7 +16,7 @@ variables.
   files, and CLI arguments
 - **Environment Control**: Load specific environment variables with `--env` flag
 - **Cross-Platform**: Builds on Linux, macOS, and (future) Windows
-- **Powered by Tera**: Full access to Tera's powerful template syntax and
+- **Powered by MiniJinja**: Full access to MiniJinja's powerful template syntax and
   filters
 
 ## Installation
@@ -218,7 +218,7 @@ shinkansen template.txt -D var="value" -o output/
 
 ## Template Syntax
 
-Shinkansen uses Tera templates. Here are some common patterns:
+Shinkansen uses MiniJinja templates. Here are some common patterns:
 
 ### Variables
 
@@ -259,8 +259,8 @@ Production mode
 {# This is a comment and won't appear in output #}
 ```
 
-For complete Tera syntax documentation, see:
-<https://keats.github.io/tera/docs/>
+For complete MiniJinja syntax documentation, see:
+<https://docs.rs/minijinja/latest/minijinja/>
 
 ## Input/Output Rules
 
@@ -354,7 +354,7 @@ Shinkansen provides helpful error messages for common issues:
   derive macros
 - [clap_complete](https://crates.io/crates/clap_complete) - Shell completion
   generation
-- [tera](https://github.com/Keats/tera) - Template engine
+- [minijinja](https://github.com/mitsuhiko/minijinja) - Template engine
 - [serde](https://github.com/serde-rs/serde) - Serialization framework
 - [serde_json](https://github.com/serde-rs/json) - JSON support
 - [serde_yaml](https://github.com/dtolnay/serde-yaml) - YAML support

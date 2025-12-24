@@ -50,8 +50,8 @@ fn test_template_with_loops() {
     "#;
 
     let mut variables = HashMap::new();
-    let items: Vec<tera::Value> = vec!["item1".into(), "item2".into(), "item3".into()];
-    variables.insert("items".to_string(), tera::Value::Array(items));
+    let items: Vec<minijinja::Value> = vec!["item1".into(), "item2".into(), "item3".into()];
+    variables.insert("items".to_string(), minijinja::Value::from(items));
 
     let result = render_template(template, &variables, "test");
     assert!(result.is_ok());
@@ -70,7 +70,9 @@ fn test_template_with_missing_variable() {
     assert!(result.is_err());
     let err = result.unwrap_err();
     let err_str = format!("{:?}", err);
-    assert!(err_str.contains("missing_var"));
+    // MiniJinja's strict mode gives "undefined value" instead of variable name
+    // This is expected behavior for MiniJinja
+    assert!(err_str.contains("undefined"));
 }
 
 #[test]
@@ -83,12 +85,14 @@ fn test_stdin_template_name_in_errors() {
     let err = result.unwrap_err();
     let err_str = format!("{:?}", err);
     assert!(err_str.contains("<stdin>"));
-    assert!(err_str.contains("missing_var"));
+    // MiniJinja's strict mode gives "undefined value" instead of variable name
+    assert!(err_str.contains("undefined"));
 }
 
 #[test]
 fn test_template_with_default_filter() {
-    let template = "{{ missing_var | default(value=\"default\") }}";
+    // MiniJinja uses different syntax for default filter
+    let template = "{{ missing_var | default(\"default\") }}";
     let variables = HashMap::new();
 
     let result = render_template(template, &variables, "test");
@@ -107,15 +111,15 @@ fn test_template_with_complex_data() {
 
     let mut variables = HashMap::new();
 
-    let mut user = tera::Map::new();
-    user.insert("name".to_string(), tera::Value::String("John".to_string()));
-    user.insert("age".to_string(), tera::Value::Number(30.into()));
-    user.insert("active".to_string(), tera::Value::Bool(true));
+    let mut user = std::collections::HashMap::new();
+    user.insert("name".to_string(), minijinja::Value::from("John"));
+    user.insert("age".to_string(), minijinja::Value::from(30));
+    user.insert("active".to_string(), minijinja::Value::from(true));
 
-    let tags: Vec<tera::Value> = vec!["rust".into(), "cli".into(), "templates".into()];
-    user.insert("tags".to_string(), tera::Value::Array(tags));
+    let tags: Vec<minijinja::Value> = vec!["rust".into(), "cli".into(), "templates".into()];
+    user.insert("tags".to_string(), minijinja::Value::from(tags));
 
-    variables.insert("user".to_string(), tera::Value::Object(user));
+    variables.insert("user".to_string(), minijinja::Value::from(user));
 
     let result = render_template(template, &variables, "test");
     assert!(result.is_ok());

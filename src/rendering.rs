@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::error::{ContextExt, Result};
+use minijinja::Environment;
 
 /// Validate template content for security and size constraints
 fn validate_template_content(content: &str) -> Result<()> {
@@ -18,19 +19,25 @@ fn validate_template_content(content: &str) -> Result<()> {
 /// Render a template with the given variables
 pub fn render_template(
     content: &str,
-    variables: &HashMap<String, tera::Value>,
+    variables: &HashMap<String, minijinja::Value>,
     name: &str,
 ) -> Result<String> {
     // Validate template content before processing
     validate_template_content(content)?;
 
-    let mut tera = tera::Tera::default();
-    tera.add_raw_template(name, content)
+    let mut env = Environment::new();
+
+    // Configure MiniJinja to treat missing variables as errors
+    env.set_undefined_behavior(minijinja::UndefinedBehavior::Strict);
+
+    env.add_template(name, content)
         .with_context(|| format!("Failed to parse template: {}", name))?;
 
-    let context = tera::Context::from_serialize(variables)
-        .with_context(|| "Failed to create template context")?;
+    let template = env
+        .get_template(name)
+        .with_context(|| format!("Failed to get template: {}", name))?;
 
-    tera.render(name, &context)
+    template
+        .render(variables)
         .with_context(|| format!("Failed to render template: {}", name))
 }

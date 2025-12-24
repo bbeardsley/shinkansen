@@ -60,10 +60,10 @@ impl From<io::Error> for ShinkansenError {
     }
 }
 
-impl From<tera::Error> for ShinkansenError {
-    fn from(err: tera::Error) -> Self {
+impl From<minijinja::Error> for ShinkansenError {
+    fn from(err: minijinja::Error) -> Self {
         // Build the full error chain like anyhow does
-        let mut full_message = format!("Tera error: {}", err);
+        let mut full_message = format!("MiniJinja error: {}", err);
         let mut source = err.source();
         let mut level = 1;
 

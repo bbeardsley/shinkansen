@@ -1,12 +1,12 @@
 [package]
 name = "shinkansen"
 version = "0.1.0"
-description = "A CLI file preprocessor using Tera templates"
+description = "A CLI file preprocessor using MiniJinja templates"
 authors = ["Brent Beardsley <brentbeardsley@gmail.com>"]
 repository = "https://github.com/bbeardsley/shinkansen"
 license = "MIT"
 edition = "2024"
-keywords = ["cli", "preprocessor", "tera", "templates"]
+keywords = ["cli", "preprocessor", "minijinja", "templates"]
 categories = ["command-line-utilities", "development-tools", "filesystem", "template-engine"]
 readme = "README.md"
 autolib = false
@@ -18,7 +18,7 @@ path = "src/lib.rs"
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 clap_complete = "4.5"
-tera = "1.20"
+minijinja = { version = "2.0", features = ["loader"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
