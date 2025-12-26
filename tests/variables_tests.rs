@@ -499,10 +499,10 @@ fn test_cli_variables_json_arrays_and_objects() {
             assert_eq!(vec[1].as_i64().unwrap(), 2);
             assert_eq!(vec[2].as_i64().unwrap(), 3);
         } else {
-            panic!("items is not an array");
+            assert!(false, "items is not an array");
         }
     } else {
-        panic!("items key not found");
+        assert!(false, "items key not found");
     }
 
     // Test JSON array with strings
@@ -517,10 +517,10 @@ fn test_cli_variables_json_arrays_and_objects() {
             assert_eq!(vec[0].as_str().unwrap(), "hello");
             assert_eq!(vec[1].as_str().unwrap(), "world");
         } else {
-            panic!("items is not an array");
+            assert!(false, "items is not an array");
         }
     } else {
-        panic!("items key not found");
+        assert!(false, "items key not found");
     }
 
     // Test JSON object parsing
@@ -538,10 +538,10 @@ fn test_cli_variables_json_arrays_and_objects() {
                 "value"
             );
         } else {
-            panic!("obj is not an object");
+            assert!(false, "obj is not an object");
         }
     } else {
-        panic!("obj key not found");
+        assert!(false, "obj key not found");
     }
 
     // Test nested JSON structures
@@ -559,22 +559,22 @@ fn test_cli_variables_json_arrays_and_objects() {
                             assert_eq!(vec.len(), 3);
                             assert_eq!(vec[0].as_i64().unwrap(), 1);
                         } else {
-                            panic!("nested.array is not an array");
+                            assert!(false, "nested.array is not an array");
                         }
                     } else {
-                        panic!("nested.array key not found");
+                        assert!(false, "nested.array key not found");
                     }
                 } else {
-                    panic!("data.nested is not an object");
+                    assert!(false, "data.nested is not an object");
                 }
             } else {
-                panic!("data.nested key not found");
+                assert!(false, "data.nested key not found");
             }
         } else {
-            panic!("data is not an object");
+            assert!(false, "data is not an object");
         }
     } else {
-        panic!("data key not found");
+        assert!(false, "data key not found");
     }
 
     // Test mixed JSON and regular values in one command
@@ -589,10 +589,10 @@ fn test_cli_variables_json_arrays_and_objects() {
             let vec: Vec<minijinja::Value> = arr.collect();
             assert_eq!(vec.len(), 2);
         } else {
-            panic!("arr is not an array");
+            assert!(false, "arr is not an array");
         }
     } else {
-        panic!("arr key not found");
+        assert!(false, "arr key not found");
     }
 
     if let Some(obj_value) = variables5.get("obj") {
@@ -602,10 +602,10 @@ fn test_cli_variables_json_arrays_and_objects() {
                 "v"
             );
         } else {
-            panic!("obj is not an object");
+            assert!(false, "obj is not an object");
         }
     } else {
-        panic!("obj key not found");
+        assert!(false, "obj key not found");
     }
 
     // Test that commas inside JSON arrays don't split variables
@@ -621,10 +621,10 @@ fn test_cli_variables_json_arrays_and_objects() {
             let vec: Vec<minijinja::Value> = arr.collect();
             assert_eq!(vec.len(), 3);
         } else {
-            panic!("items is not an array");
+            assert!(false, "items is not an array");
         }
     } else {
-        panic!("items key not found");
+        assert!(false, "items key not found");
     }
 }
 
@@ -670,10 +670,10 @@ fn test_cli_variables_escaped_brackets() {
             let vec: Vec<minijinja::Value> = arr.collect();
             assert_eq!(vec.len(), 3);
         } else {
-            panic!("arr is not an array");
+            assert!(false, "arr is not an array");
         }
     } else {
-        panic!("arr key not found");
+        assert!(false, "arr key not found");
     }
 
     assert_eq!(
@@ -732,13 +732,13 @@ fn test_cli_variables_nested_objects() {
             if let Some(bar_value) = obj.get_value(&Value::from("bar")) {
                 assert_eq!(bar_value.as_i64().unwrap(), 42);
             } else {
-                panic!("bar key not found in foo object");
+                assert!(false, "bar key not found in foo object");
             }
         } else {
-            panic!("foo is not an object");
+            assert!(false, "foo is not an object");
         }
     } else {
-        panic!("foo key not found");
+        assert!(false, "foo key not found");
     }
 
     // Test multiple nested properties in one command
@@ -769,10 +769,10 @@ fn test_cli_variables_nested_objects() {
                 42
             );
         } else {
-            panic!("foo is not an object");
+            assert!(false, "foo is not an object");
         }
     } else {
-        panic!("foo key not found");
+        assert!(false, "foo key not found");
     }
 
     // Test second nested variable separately
@@ -786,13 +786,13 @@ fn test_cli_variables_nested_objects() {
             if let Some(baz_value) = obj.get_value(&Value::from("baz")) {
                 assert!(baz_value.is_true());
             } else {
-                panic!("baz value not found");
+                assert!(false, "baz value not found");
             }
         } else {
-            panic!("foo is not an object");
+            assert!(false, "foo is not an object");
         }
     } else {
-        panic!("foo key not found");
+        assert!(false, "foo key not found");
     }
 
     // Test deeply nested objects
@@ -815,22 +815,22 @@ fn test_cli_variables_nested_objects() {
                                 "deep_value"
                             );
                         } else {
-                            panic!("baz is not an object");
+                            assert!(false, "baz is not an object");
                         }
                     } else {
-                        panic!("baz key not found");
+                        assert!(false, "baz key not found");
                     }
                 } else {
-                    panic!("bar is not an object");
+                    assert!(false, "bar is not an object");
                 }
             } else {
-                panic!("bar key not found");
+                assert!(false, "bar key not found");
             }
         } else {
-            panic!("foo is not an object");
+            assert!(false, "foo is not an object");
         }
     } else {
-        panic!("foo key not found");
+        assert!(false, "foo key not found");
     }
 
     // Test merging with existing nested structures
@@ -858,10 +858,10 @@ fn test_cli_variables_nested_objects() {
             // "bar" should not be present due to the overwriting behavior
             assert!(obj.get_value(&Value::from("bar")).is_none());
         } else {
-            panic!("foo is not an object");
+            assert!(false, "foo is not an object");
         }
     } else {
-        panic!("foo key not found");
+        assert!(false, "foo key not found");
     }
 
     // Test mixed nested and non-nested variables
@@ -881,9 +881,9 @@ fn test_cli_variables_nested_objects() {
                 "world"
             );
         } else {
-            panic!("foo is not an object");
+            assert!(false, "foo is not an object");
         }
     } else {
-        panic!("foo key not found");
+        assert!(false, "foo key not found");
     }
 }

@@ -37,7 +37,7 @@ fn test_determine_output_destination_single_file() {
         OutputDestination::SingleFile(path) => {
             assert_eq!(path, PathBuf::from("output.txt"));
         }
-        _ => panic!("Expected SingleFile output destination"),
+        _ => assert!(false, "Expected SingleFile output destination"),
     }
 }
 
@@ -58,7 +58,7 @@ fn test_determine_output_destination_directory() {
         OutputDestination::Directory(path) => {
             assert_eq!(path, PathBuf::from("output_dir"));
         }
-        _ => panic!("Expected Directory output destination"),
+        _ => assert!(false, "Expected Directory output destination"),
     }
 }
 
