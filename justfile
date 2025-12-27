@@ -33,3 +33,40 @@ test:
 # install the binary locally
 install:
 	cargo install --path .
+
+# build release executables
+release-executables:
+	rm -f target/shinkansen-*.tar.gz
+	rm -f target/shinkansen-*.zip
+
+	# cargo install cross --git https://github.com/cross-rs/cross.git
+	cross build --target x86_64-unknown-linux-gnu --release
+	tar -czvf target/shinkansen-linux-amd64.tar.gz target/x86_64-unknown-linux-gnu/release/shinkansen
+
+	cross build --target armv7-unknown-linux-gnueabihf --release
+	tar -czvf target/shinkansen-linux-arm64.tar.gz target/armv7-unknown-linux-gnueabihf/release/shinkansen
+
+	# rustup target add x86_64-apple-darwin aarch64-apple-darwin
+	cargo build --target x86_64-apple-darwin --release
+	tar -czvf target/shinkansen-darwin-amd64.tar.gz target/x86_64-apple-darwin/release/shinkansen
+
+	cargo build --target aarch64-apple-darwin --release
+	tar -czvf target/shinkansen-darwin-arm64.tar.gz target/aarch64-apple-darwin/release/shinkansen
+
+	cross build --target x86_64-pc-windows-gnu --release
+	zip -j target/shinkansen-windows-amd64.zip target/x86_64-pc-windows-gnu/release/shinkansen.exe
+
+# create a github release for version (without the v)
+release-create VERSION: release-executables
+	gh release create v{{VERSION}} \
+		target/shinkansen-linux-amd64.tar.gz \
+		target/shinkansen-linux-arm64.tar.gz \
+		target/shinkansen-darwin-amd64.tar.gz \
+		target/shinkansen-darwin-arm64.tar.gz \
+		target/shinkansen-windows-amd64.zip \
+		--title "v{{VERSION}}" \
+		--notes "Release v{{VERSION}}"
+
+# show the shas for the release assets for the specified version (without the v)
+release-shas VERSION:
+	@gh release view v{{VERSION}} --json assets --jq '.assets | map("\(.name),\(.digest)")|.[]' | sed "s/sha256://"
