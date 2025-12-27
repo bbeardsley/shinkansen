@@ -34,6 +34,9 @@ test:
 install:
 	cargo install --path .
 
+rustup-add-targets:
+	rustup target add x86_64-unknown-linux-gnu armv7-unknown-linux-gnueabihf x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu
+
 # build release executables
 release-executables:
 	rm -f target/shinkansen-*.tar.gz
@@ -46,7 +49,6 @@ release-executables:
 	cross build --target armv7-unknown-linux-gnueabihf --release
 	tar -czvf target/shinkansen-linux-arm64.tar.gz target/armv7-unknown-linux-gnueabihf/release/shinkansen
 
-	# rustup target add x86_64-apple-darwin aarch64-apple-darwin
 	cargo build --target x86_64-apple-darwin --release
 	tar -czvf target/shinkansen-darwin-amd64.tar.gz target/x86_64-apple-darwin/release/shinkansen
 
