@@ -66,8 +66,9 @@ release-create VERSION: release-executables
 		target/shinkansen-darwin-amd64.tar.gz \
 		target/shinkansen-darwin-arm64.tar.gz \
 		target/shinkansen-windows-amd64.zip \
-		--title "v{{VERSION}}" \
-		--notes "Release v{{VERSION}}"
+		--title "{{VERSION}}" \
+		--draft \
+		--generate-notes
 
 # show the shas for the release assets for the specified version (without the v)
 release-shas VERSION:
