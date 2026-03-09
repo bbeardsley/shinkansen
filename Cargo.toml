@@ -23,7 +23,7 @@ minijinja = { version = "2.17", features = ["loader"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
-toml = "1.0.4"
+toml = "1.0.6"
 walkdir = "2.5"
 tempfile = "3.26"
 
