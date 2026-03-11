@@ -25,7 +25,7 @@ serde_json = "1.0"
 serde_yaml = "0.9"
 toml = "1.0.6"
 walkdir = "2.5"
-tempfile = "3.26"
+tempfile = "3.27"
 
 [dev-dependencies]
-tempfile = "3.26"
+tempfile = "3.27"
