@@ -1,7 +1,26 @@
 use std::collections::HashMap;
 
 use crate::error::{ContextExt, Result};
-use minijinja::Environment;
+use minijinja::value::ValueKind;
+use minijinja::{Environment, escape_formatter};
+
+/// Format MiniJinja values for output.
+///
+/// Booleans are rendered as lowercase `true`/`false` to match Rust/JSON/YAML
+/// conventions used throughout the CLI. All other values are delegated to the
+/// default MiniJinja formatter so auto-escaping behavior is preserved.
+fn format_value(
+    out: &mut minijinja::Output,
+    state: &minijinja::State,
+    value: &minijinja::Value,
+) -> std::result::Result<(), minijinja::Error> {
+    if value.kind() == ValueKind::Bool {
+        out.write_str(if value.is_true() { "true" } else { "false" })
+            .map_err(minijinja::Error::from)
+    } else {
+        escape_formatter(out, state, value)
+    }
+}
 
 /// Validate template content for security and size constraints
 fn validate_template_content(content: &str) -> Result<()> {
@@ -29,6 +48,9 @@ pub fn render_template(
 
     // Configure MiniJinja to treat missing variables as errors
     env.set_undefined_behavior(minijinja::UndefinedBehavior::Strict);
+
+    // Render booleans as lowercase `true`/`false`
+    env.set_formatter(format_value);
 
     env.add_template(name, content)
         .with_context(|| format!("Failed to parse template: {}", name))?;
