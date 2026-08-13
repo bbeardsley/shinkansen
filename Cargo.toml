@@ -19,7 +19,7 @@ path = "src/lib.rs"
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
 clap_complete = "4.6"
-minijinja = { version = "2.23", features = ["loader"] }
+minijinja = { version = "2.24", features = ["loader"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
