@@ -11,7 +11,7 @@ use minijinja::{Environment, escape_formatter};
 /// default MiniJinja formatter so auto-escaping behavior is preserved.
 fn format_value(
     out: &mut minijinja::Output,
-    state: &minijinja::State,
+    state: &mut minijinja::State,
     value: &minijinja::Value,
 ) -> std::result::Result<(), minijinja::Error> {
     if value.kind() == ValueKind::Bool {
